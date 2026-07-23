@@ -8,8 +8,61 @@ window.addEventListener("resize", () => {
     canvas.width = innerWidth;
     canvas.height = innerHeight;
 });
+canvas.addEventListener("click", e=>{
+
+    if(gameState !== "menu") return;
+
+    const w = 240;
+    const h = 70;
+
+    const x = canvas.width/2 - w/2;
+    const y = canvas.height/2 - h/2;
+
+    if(
+        e.offsetX >= x &&
+        e.offsetX <= x + w &&
+        e.offsetY >= y &&
+        e.offsetY <= y + h
+    ){
+
+        player.x = 1000;
+        player.y = WORLD_SIZE - 1000;
+        player.hp = player.maxHp;
+        player.speed = 0;
+        player.angle = 0;
+
+        gameState = "playing";
+    }
+
+});
+canvas.addEventListener("mousemove", e=>{
+
+    if(gameState !== "menu"){
+        canvas.style.cursor = "default";
+        return;
+    }
+
+    const w = 240;
+    const h = 70;
+
+    const x = canvas.width/2 - w/2;
+    const y = canvas.height/2 - h/2;
+
+    if(
+        e.offsetX >= x &&
+        e.offsetX <= x + w &&
+        e.offsetY >= y &&
+        e.offsetY <= y + h
+    ){
+        canvas.style.cursor = "pointer";
+    }else{
+        canvas.style.cursor = "default";
+    }
+
+});
 
 const WORLD_SIZE = 20000;
+let gameState = "menu";   // menu or playing
 
 const pirateMissiles = [];
 
@@ -242,6 +295,8 @@ if(
 }
 
 function update(){
+    if(gameState!=="playing")
+        return;
 // Forward
 if(keys["w"] || keys["arrowup"])
     player.speed=Math.min(player.speed+0.15,player.maxSpeed);
@@ -602,28 +657,61 @@ function drawHUD(){
     );
 
 }
+function drawMenu(){
+
+    ctx.fillStyle = "#020813";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.font = "64px Arial";
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+        "game in testing",
+        canvas.width/2,
+        canvas.height/2-120
+    );
+
+    // Play button
+    const w = 240;
+    const h = 70;
+
+    const x = canvas.width/2 - w/2;
+    const y = canvas.height/2 - h/2;
+
+    ctx.fillStyle = "#3a8cff";
+    ctx.fillRect(x,y,w,h);
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x,y,w,h);
+
+    ctx.fillStyle = "white";
+    ctx.font = "36px Arial";
+    ctx.fillText("PLAY",canvas.width/2,y+47);
+  
+
+}
 
 function draw(){
+
+    if(gameState==="menu"){
+        drawMenu();
+        return;
+    }
 
     ctx.fillStyle="#020813";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
     drawStars();
-
     drawBases();
-
     drawPirates();
-
     drawPirateMissiles();
-
     drawEngineParticles();
-
     drawShip();
-
     drawHUD();
 
 }
-
 function loop(){
 
     update();
