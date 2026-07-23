@@ -60,11 +60,20 @@ canvas.addEventListener("mousemove", e=>{
     }
 
 });
+window.addEventListener("keydown", e => {
+
+    if(e.key.toLowerCase() === "m")
+        showMap = !showMap;
+
+});
 
 const WORLD_SIZE = 20000;
 let gameState = "menu";   // menu or playing
+let showMap = false;
 
 const pirateMissiles = [];
+const playerBullets = [];
+const pirateRespawns = [];
 
 const camera = {
     x:0,
@@ -84,7 +93,9 @@ const player = {
    hp:100,
    maxHp:100,
    healRate:0.015,
-   gems:0
+   gems:0,
+
+   cannonCooldown: 0,
 };
 
 const keys = {};
@@ -293,6 +304,67 @@ if(
     });
 
 }
+function updateCannons(){
+
+    if(player.cannonCooldown > 0)
+        player.cannonCooldown--;
+
+    let target = null;
+    let closest = 999999;
+
+    pirates.forEach(p=>{
+
+        const dx = p.x - player.x;
+        const dy = p.y - player.y;
+
+        const dist = Math.hypot(dx,dy);
+
+        if(dist > 500) return;
+
+        const targetAngle = Math.atan2(dy,dx);
+
+        let diff = targetAngle - player.angle;
+
+        while(diff > Math.PI)
+            diff -= Math.PI*2;
+
+        while(diff < -Math.PI)
+            diff += Math.PI*2;
+
+        // 53 degree cone
+        if(Math.abs(diff) < 0.57){
+
+            if(dist < closest){
+
+                closest = dist;
+                target = p;
+
+            }
+        }
+    });
+
+    if(target && player.cannonCooldown===0){
+
+        const shootAngle = Math.atan2(
+            target.y-player.y,
+            target.x-player.x
+        );
+
+        playerBullets.push({
+
+            x:player.x + Math.cos(shootAngle)*30,
+            y:player.y + Math.sin(shootAngle)*30,
+
+            angle:shootAngle,
+
+            speed:12,
+            life:60
+
+        });
+
+        player.cannonCooldown = 12;
+    }
+}
 
 function update(){
     if(gameState!=="playing")
@@ -325,6 +397,9 @@ if(keys["d"] || keys["arrowright"])
     camera.y=player.y-canvas.height/2;
     updatePirates();
     updatePirateMissiles();
+    updateCannons();
+    updatePlayerBullets();
+    updateRespawns();
 
     if(Math.abs(player.speed)>0.2){
 
@@ -371,6 +446,81 @@ if(keys["d"] || keys["arrowright"])
         player.maxHp,
         player.hp + player.healRate
     );
+    }
+
+}
+function updatePlayerBullets(){
+
+    playerBullets.forEach(b=>{
+
+        b.x += Math.cos(b.angle)*b.speed;
+        b.y += Math.sin(b.angle)*b.speed;
+
+        b.life--;
+
+        pirates.forEach(p=>{
+
+            const d = Math.hypot(
+                p.x-b.x,
+                p.y-b.y
+            );
+
+            if(d < 15){
+
+                p.hp -= 10;
+
+                b.life = 0;
+            }
+
+        });
+
+    });
+
+    // Remove dead pirates
+    for(let i=pirates.length-1;i>=0;i--){
+
+        if(pirates[i].hp<=0){
+
+            player.gems++;
+
+            pirateRespawns.push({
+                timer:360    // 6 seconds at 60 FPS
+            });
+
+            pirates.splice(i,1);
+        }
+    }
+
+    // Remove bullets
+    for(let i=playerBullets.length-1;i>=0;i--){
+
+        if(playerBullets[i].life<=0)
+            playerBullets.splice(i,1);
+    }
+}
+function updateRespawns(){
+
+    for(let i=pirateRespawns.length-1;i>=0;i--){
+
+        pirateRespawns[i].timer--;
+
+        if(pirateRespawns[i].timer<=0){
+
+            pirates.push({
+
+                x:Math.random()*WORLD_SIZE,
+                y:Math.random()*WORLD_SIZE,
+
+                angle:Math.random()*Math.PI*2,
+                speed:1+Math.random(),
+
+                hp:20,
+                cooldown:0
+
+            });
+
+            pirateRespawns.splice(i,1);
+        }
     }
 
 }
@@ -467,6 +617,30 @@ function drawPirateMissiles(){
         ctx.stroke();
 
         ctx.restore();
+
+    });
+
+}
+function drawPlayerBullets(){
+
+    playerBullets.forEach(b=>{
+
+        ctx.strokeStyle="#66bbff";
+        ctx.lineWidth=5;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            b.x-camera.x,
+            b.y-camera.y
+        );
+
+        ctx.lineTo(
+            b.x-camera.x-Math.cos(b.angle)*18,
+            b.y-camera.y-Math.sin(b.angle)*18
+        );
+
+        ctx.stroke();
 
     });
 
@@ -657,6 +831,83 @@ function drawHUD(){
     );
 
 }
+function drawMap(){
+
+    const mapSize = 320;
+
+    const x = canvas.width/2 - mapSize/2;
+    const y = canvas.height/2 - mapSize/2;
+
+    // Background
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.fillRect(x,y,mapSize,mapSize);
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x,y,mapSize,mapSize);
+
+    // Convert world coordinates to map coordinates
+    function mapX(wx){
+        return x + wx/WORLD_SIZE*mapSize;
+    }
+
+    function mapY(wy){
+        return y + wy/WORLD_SIZE*mapSize;
+    }
+
+    // Alpha Base
+    ctx.fillStyle = "#33ff88";
+
+    ctx.beginPath();
+    ctx.arc(
+        mapX(1000),
+        mapY(WORLD_SIZE-1000),
+        9,
+        0,
+        Math.PI*2
+    );
+    ctx.fill();
+
+   // Player (triangle)
+    const px = mapX(player.x);
+    const py = mapY(player.y);
+
+    ctx.save();
+
+    ctx.translate(px, py);
+    ctx.rotate(player.angle);
+
+    ctx.fillStyle = "#66bbff";
+
+    ctx.beginPath();
+    ctx.moveTo(5, 0);     // nose
+    ctx.lineTo(-3, -3);
+    ctx.lineTo(-3, 3);
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.restore();
+
+    // Pirates within radar range
+    ctx.fillStyle = "#ff4444";
+
+    pirates.forEach(p=>{
+
+
+        ctx.beginPath();
+        ctx.arc(
+            mapX(p.x),
+            mapY(p.y),
+            2,      // 4px diameter
+            0,
+            Math.PI*2
+        );
+        ctx.fill();
+
+    });
+
+}
 function drawMenu(){
 
     ctx.fillStyle = "#020813";
@@ -705,13 +956,21 @@ function draw(){
 
     drawStars();
     drawBases();
-    drawPirates();
+
+    drawPirates();          
     drawPirateMissiles();
+    drawPlayerBullets();
     drawEngineParticles();
+
     drawShip();
     drawHUD();
 
+
+    if(showMap)
+        drawMap();
+
 }
+
 function loop(){
 
     update();
