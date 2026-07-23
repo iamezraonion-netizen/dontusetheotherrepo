@@ -73,6 +73,7 @@ let showMap = false;
 
 const pirateMissiles = [];
 const playerBullets = [];
+const gems = [];
 const pirateRespawns = [];
 
 const camera = {
@@ -399,6 +400,7 @@ if(keys["d"] || keys["arrowright"])
     updatePirateMissiles();
     updateCannons();
     updatePlayerBullets();
+    updateGems();
     updateRespawns();
 
     if(Math.abs(player.speed)>0.2){
@@ -481,12 +483,23 @@ function updatePlayerBullets(){
 
         if(pirates[i].hp<=0){
 
-            player.gems++;
+            // Drop a gem
+            gems.push({
 
-            pirateRespawns.push({
-                timer:360    // 6 seconds at 60 FPS
+                x: pirates[i].x,
+                y: pirates[i].y,
+
+                size: 6,
+                pulse: Math.random() * Math.PI * 2
+
             });
 
+            // Schedule pirate respawn
+            pirateRespawns.push({
+                timer:360    // 6 seconds
+            });
+
+            // Remove pirate
             pirates.splice(i,1);
         }
     }
@@ -571,6 +584,66 @@ function updatePirateMissiles(){
     );
 
 }
+function updateGems(){
+
+    for(let i=gems.length-1;i>=0;i--){
+
+        const g = gems[i];
+
+        const d = Math.hypot(
+            player.x-g.x,
+            player.y-g.y
+        );
+
+        if(d<30){
+
+            player.gems++;
+
+            gems.splice(i,1);
+
+        }
+
+    }
+
+}
+function drawGems(){
+
+        gems.forEach(g=>{
+
+            const sx = g.x - camera.x;
+            const sy = g.y - camera.y;
+
+            if(
+                sx < -20 ||
+                sy < -20 ||
+                sx > canvas.width+20 ||
+                sy > canvas.height+20
+            ) return;
+
+            g.pulse += 0.08;
+
+            const r = g.size + Math.sin(g.pulse)*1;
+
+            ctx.save();
+
+            ctx.translate(sx,sy);
+            ctx.rotate(g.pulse*0.5);
+
+            ctx.fillStyle="#fff700";
+
+            ctx.beginPath();
+            ctx.moveTo(0,-r);
+            ctx.lineTo(r*0.7,0);
+            ctx.lineTo(0,r);
+            ctx.lineTo(-r*0.7,0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+
+        });
+
+    }
 
 function drawPirateMissiles(){
 
@@ -867,6 +940,18 @@ function drawMap(){
         Math.PI*2
     );
     ctx.fill();
+    // Beta Base
+    ctx.fillStyle = "#4488ff";
+
+    ctx.beginPath();
+    ctx.arc(
+        mapX(WORLD_SIZE - 1000),
+        mapY(1000),
+        8,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
 
    // Player (triangle)
     const px = mapX(player.x);
@@ -957,7 +1042,8 @@ function draw(){
     drawStars();
     drawBases();
 
-    drawPirates();          
+    drawPirates();   
+    drawGems();       
     drawPirateMissiles();
     drawPlayerBullets();
     drawEngineParticles();
