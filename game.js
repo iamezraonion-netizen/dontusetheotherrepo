@@ -68,6 +68,17 @@ window.addEventListener("keydown", e => {
 });
 
 const WORLD_SIZE = 20000;
+const ALPHA_BASE = {
+    x:1000,
+    y:WORLD_SIZE-1000,
+    radius:120
+};
+
+const BETA_BASE = {
+    x:WORLD_SIZE-1000,
+    y:1000,
+    radius:120
+};
 let gameState = "menu";   // menu or playing
 let showMap = false;
 
@@ -228,23 +239,43 @@ function updatePirates(){
 
         
         const dxPlayer = p.x - player.x;
-const dyPlayer = p.y - player.y;
-const hit = Math.hypot(dxPlayer, dyPlayer);
+    const dyPlayer = p.y - player.y;
+    const hit = Math.hypot(dxPlayer, dyPlayer);
 
-if(hit < 28){
+    if(hit < 28 && !player.inSafeZone){
 
-    // Damage player
-    player.hp = Math.max(0, player.hp - 0.25);
+        // Damage player
+        player.hp = Math.max(0, player.hp - 0.25);
 
-    // Push pirate away
-    const push = (28 - hit) * 0.6;
+        // Push pirate away
+        const push = (28 - hit) * 0.6;
 
-    if(hit > 0){
-        p.x += (dxPlayer / hit) * push;
-        p.y += (dyPlayer / hit) * push;
+        if(hit > 0){
+            p.x += (dxPlayer / hit) * push;
+            p.y += (dyPlayer / hit) * push;
+        }
+
     }
+    // Keep pirates outside Alpha Base
+    [ALPHA_BASE, BETA_BASE].forEach(base=>{
 
-}
+        const dx = p.x - base.x;
+        const dy = p.y - base.y;
+
+        const dist = Math.hypot(dx,dy);
+
+        const safeRadius = base.radius + 80;
+
+        if(dist < safeRadius && dist > 0){
+
+            const push = safeRadius - dist;
+
+            p.x += dx/dist * push * 0.15;
+            p.y += dy/dist * push * 0.15;
+
+        }
+
+    });
 
         // Bounce off edges
     if(p.x<0){
@@ -449,6 +480,22 @@ if(keys["d"] || keys["arrowright"])
         player.hp + player.healRate
     );
     }
+    player.inSafeZone = false;
+
+    [ALPHA_BASE, BETA_BASE].forEach(base=>{
+
+        const d = Math.hypot(
+            player.x - base.x,
+            player.y - base.y
+        );
+
+        if(d < base.radius){
+
+            player.inSafeZone = true;
+
+        }
+
+    });
 
 }
 function updatePlayerBullets(){
@@ -542,45 +589,64 @@ function updatePirateMissiles(){
 
     pirateMissiles.forEach(m=>{
 
-        const target=Math.atan2(
-            player.y-m.y,
-            player.x-m.x
+        // Home towards player
+        const target = Math.atan2(
+            player.y - m.y,
+            player.x - m.x
         );
 
-        let diff=target-m.angle;
+        let diff = target - m.angle;
 
-        while(diff>Math.PI)
-            diff-=Math.PI*2;
+        while(diff > Math.PI)
+            diff -= Math.PI * 2;
 
-        while(diff<-Math.PI)
-            diff+=Math.PI*2;
+        while(diff < -Math.PI)
+            diff += Math.PI * 2;
 
-        m.angle+=diff*0.05;
+        m.angle += diff * 0.05;
 
-        m.x+=Math.cos(m.angle)*m.speed;
-        m.y+=Math.sin(m.angle)*m.speed;
+        // Move
+        m.x += Math.cos(m.angle) * m.speed;
+        m.y += Math.sin(m.angle) * m.speed;
 
         m.life--;
 
-        const d=Math.hypot(
-            player.x-m.x,
-            player.y-m.y
+        // Hit player (only outside safe zone)
+        const d = Math.hypot(
+            player.x - m.x,
+            player.y - m.y
         );
 
-        if(d<25){
+        if(d < 25 && !player.inSafeZone){
 
             player.hp = Math.max(0, player.hp - 10);
-
-            m.life=0;
+            m.life = 0;
 
         }
 
+        // Destroy missile if it enters either base
+        [ALPHA_BASE, BETA_BASE].forEach(base=>{
+
+            const bd = Math.hypot(
+                m.x - base.x,
+                m.y - base.y
+            );
+
+            if(bd < base.radius){
+
+                m.life = 0;
+
+            }
+
+        });
+
     });
 
+    // Remove dead missiles
     pirateMissiles.splice(
         0,
         pirateMissiles.length,
-        ...pirateMissiles.filter(m=>m.life>0)
+        ...pirateMissiles.filter(m => m.life > 0)
     );
 
 }
@@ -902,6 +968,18 @@ function drawHUD(){
         20,
         65
     );
+    if(player.inSafeZone){
+
+        ctx.fillStyle = "#66ff66";
+        ctx.font = "26px Arial";
+
+        ctx.fillText(
+            "SAFE ZONE",
+            20,
+            105
+        );
+
+    }
 
 }
 function drawMap(){
@@ -1003,7 +1081,7 @@ function drawMenu(){
     ctx.textAlign = "center";
 
     ctx.fillText(
-        "game in testing",
+        "game in testing and still under construction",
         canvas.width/2,
         canvas.height/2-120
     );
