@@ -60,12 +60,45 @@ canvas.addEventListener("mousemove", e=>{
     }
 
 });
-window.addEventListener("keydown", e => {
+window.addEventListener("keydown", e=>{
 
-    if(e.key.toLowerCase() === "m")
+    const key = e.key.toLowerCase();
+
+    if(key==="m")
         showMap = !showMap;
 
+    if(key==="e"){
+
+        if(player.inSafeZone){
+
+            docked = !docked;
+
+            if(docked){
+
+                if(
+                    Math.hypot(
+                        player.x-ALPHA_BASE.x,
+                        player.y-ALPHA_BASE.y
+                    ) < ALPHA_BASE.radius
+                ){
+                    currentBase = "Alpha Base";
+                }else{
+                    currentBase = "Beta Base";
+                }
+
+            }
+
+        }
+
+    }
+    if(key==="b" && docked && player.gems > 0){
+
+        player.credits += player.gems * 100;
+        player.gems = 0;
+
+    }
 });
+
 
 const WORLD_SIZE = 20000;
 const SECTOR_SIZE = WORLD_SIZE / 5; // 4000
@@ -82,6 +115,8 @@ const BETA_BASE = {
 };
 let gameState = "menu";   // menu or playing
 let showMap = false;
+let docked = false;
+let currentBase = null;
 
 const pirateMissiles = [];
 const playerBullets = [];
@@ -106,7 +141,9 @@ const player = {
    hp:100,
    maxHp:100,
    healRate:0.015,
+
    gems:0,
+   credits: 0,
 
    cannonCooldown: 0,
 };
@@ -481,6 +518,7 @@ function updateAsteroids(){
 
         a.x += a.vx;
         a.y += a.vy;
+        a.rotation += a.rotationSpeed;
 
         const left   = a.sectorX * SECTOR_SIZE;
         const right  = left + SECTOR_SIZE;
@@ -717,6 +755,12 @@ if(keys["d"] || keys["arrowright"])
         }
 
     });
+    if(!player.inSafeZone){
+
+        docked = false;
+        currentBase = null;
+
+    }
 
 }
 function updatePlayerBullets(){
@@ -1017,13 +1061,16 @@ function drawGems(){
 
         ctx.fillStyle = "#5a4738";
 
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(a.rotation);
+
         ctx.beginPath();
 
         a.points.forEach((p,i)=>{
 
-            const px = sx + Math.cos(p.angle)*p.r;
-            const py = sy + Math.sin(p.angle)*p.r;
-
+            const px = Math.cos(p.angle) * p.r;
+            const py = Math.sin(p.angle) * p.r;
             if(i===0)
                 ctx.moveTo(px,py);
             else
@@ -1037,8 +1084,67 @@ function drawGems(){
         ctx.strokeStyle="#7d624c";
         ctx.lineWidth=4;
         ctx.stroke();
+        ctx.restore();
 
     });
+
+}
+function drawDock(){
+
+    const w = 420;
+    const h = 260;
+
+    const x = canvas.width/2 - w/2;
+    const y = canvas.height/2 - h/2;
+
+    ctx.fillStyle = "rgba(0,0,0,0.9)";
+    ctx.fillRect(x,y,w,h);
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x,y,w,h);
+
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+
+    ctx.font = "32px Arial";
+    ctx.fillText(currentBase, canvas.width/2, y+45);
+
+    ctx.font = "22px Arial";
+
+    ctx.fillText(
+        "Credits: " + player.credits,
+        canvas.width/2,
+        y+95
+    );
+
+    ctx.fillText(
+        "Gems: " + player.gems,
+        canvas.width/2,
+        y+130
+    );
+
+    ctx.fillText(
+        "1 Gem = 100 Credits",
+        canvas.width/2,
+        y+170
+    );
+
+    ctx.fillStyle="#66ff66";
+
+    ctx.fillText(
+        "Press B to Sell All",
+        canvas.width/2,
+        y+210
+    );
+
+    ctx.fillStyle="#ff0000";
+
+    ctx.fillText(
+        "Press E to Leave",
+        canvas.width/2,
+        y+240
+    );
 
 }
 
@@ -1296,8 +1402,13 @@ function drawHUD(){
 
     ctx.fillText(
         "Gems: "+player.gems,
-        20,
+        90,
         65
+    );
+    ctx.fillText(
+        "Credits: " + player.credits,
+        90,
+        95
     );
     if(player.inSafeZone){
 
@@ -1306,8 +1417,8 @@ function drawHUD(){
 
         ctx.fillText(
             "SAFE ZONE",
-            20,
-            105
+            765,
+            125
         );
 
     }
@@ -1464,6 +1575,8 @@ function draw(){
 
     if(showMap)
         drawMap();
+    if(docked)
+    drawDock();
 
 }
 
