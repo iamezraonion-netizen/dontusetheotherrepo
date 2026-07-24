@@ -68,6 +68,7 @@ window.addEventListener("keydown", e => {
 });
 
 const WORLD_SIZE = 20000;
+const SECTOR_SIZE = WORLD_SIZE / 5; // 4000
 const ALPHA_BASE = {
     x:1000,
     y:WORLD_SIZE-1000,
@@ -130,47 +131,99 @@ const pirates = [];
 
 for(let i=0;i<330;i++){
 
+    let sx, sy;
+
+    // Pick a random sector that isn't a base sector
+    do{
+
+        sx = Math.floor(Math.random()*5);
+        sy = Math.floor(Math.random()*5);
+
+    }while(
+        (sx===0 && sy===4) ||   // Alpha sector
+        (sx===4 && sy===0)      // Beta sector
+    );
+
+    const x = sx*SECTOR_SIZE + Math.random()*SECTOR_SIZE;
+    const y = sy*SECTOR_SIZE + Math.random()*SECTOR_SIZE;
+
     pirates.push({
 
-        x:Math.random()*WORLD_SIZE,
-        y:Math.random()*WORLD_SIZE,
+        x,
+        y,
+
+        homeX:sx,
+        homeY:sy,
 
         angle:Math.random()*Math.PI*2,
-        speed:1+Math.random(),
 
-        hp:20
+        hp:20,
+        cooldown:0,
 
+        returning:false,
     });
 
 }
 const asteroids = [];
 
-for(let field=0; field<40; field++){
+const asteroidSectors = [
+    {x:1, y:1},
+    {x:2, y:1},
+    {x:3, y:1},
 
-    const cx = Math.random()*WORLD_SIZE;
-    const cy = Math.random()*WORLD_SIZE;
+    {x:1, y:2},
+    {x:3, y:2},
 
-    const amount = 8 + Math.floor(Math.random()*12);
+    {x:1, y:3},
+    {x:2, y:3},
+    {x:3, y:3}
+];
 
-    for(let i=0;i<amount;i++){
+asteroidSectors.forEach(sec=>{
 
-        const angle = Math.random()*Math.PI*2;
-        const dist = Math.random()*350;
+    const left = sec.x * SECTOR_SIZE;
+    const top = sec.y * SECTOR_SIZE;
+
+    for(let i=0;i<33;i++){
+
+        const radius = 45 + Math.random()*35;
+
+        const points = [];
+        const vertices = 8 + Math.floor(Math.random()*5);
+
+        for(let j=0;j<vertices;j++){
+
+            const pointAngle = j / vertices * Math.PI * 2;
+
+            points.push({
+                angle: pointAngle,
+                r: radius * (0.75 + Math.random()*0.4)
+            });
+
+        }
 
         asteroids.push({
 
-            x:cx + Math.cos(angle)*dist,
-            y:cy + Math.sin(angle)*dist,
+            x: left + Math.random()*SECTOR_SIZE,
+            y: top + Math.random()*SECTOR_SIZE,
 
-            radius:45 + Math.random()*35,
+            radius,
+            points,
+
+            rotation: Math.random()*Math.PI*2,
+            rotationSpeed:(Math.random()-0.5)*0.01,
 
             vx:(Math.random()-0.5)*0.35,
-            vy:(Math.random()-0.5)*0.35
+            vy:(Math.random()-0.5)*0.35,
+
+            sectorX: sec.x,
+            sectorY: sec.y
+
         });
 
     }
 
-}
+});
 function updatePirates(){
 
     pirates.forEach(p=>{
@@ -208,43 +261,82 @@ function updatePirates(){
             player.y - p.y
         );
 
-        if(playerDist < 700){
+        // Centre of pirate's home sector
+        const sectorCenterX = (p.homeX + 0.5) * SECTOR_SIZE;
+        const sectorCenterY = (p.homeY + 0.5) * SECTOR_SIZE;
 
+        // Distance from home sector centre
+        const homeDist = Math.hypot(
+            p.x - sectorCenterX,
+            p.y - sectorCenterY
+        );
+        const left = p.homeX * SECTOR_SIZE;
+        const right = left + SECTOR_SIZE;
+        const top = p.homeY * SECTOR_SIZE;
+        const bottom = top + SECTOR_SIZE;
+
+        const insideSector =
+            p.x >= left &&
+            p.x <= right &&
+            p.y >= top &&
+            p.y <= bottom;
+
+        // Too far away?
+        if(homeDist >= 4600)
+            p.returning = true;
+
+        // Reached home?
+        if(p.returning && insideSector)
+            p.returning = false;
+
+        if(!p.returning && playerDist < 700){
+
+            // Chase player
             const a = Math.atan2(
-                player.y - p.y,
-                player.x - p.x
+                player.y-p.y,
+                player.x-p.x
             );
 
             p.x += Math.cos(a) * 1.5;
             p.y += Math.sin(a) * 1.5;
 
         }
-        else if(nearby>0){
-
-            centerX /= nearby;
-            centerY /= nearby;
-
-            const dx = centerX - p.x;
-            const dy = centerY - p.y;
-            const d = Math.hypot(dx,dy);
-
-            // Only move if not already in the group
-            if(d > 40){
-
-                p.x += dx/d;
-                p.y += dy/d;
-
-            }
-
-        }
         else{
 
-            p.angle += (Math.random()-0.5)*0.03;
+            if(p.returning){
 
-            p.x += Math.cos(p.angle);
-            p.y += Math.sin(p.angle);
+                const a = Math.atan2(
+                    sectorCenterY - p.y,
+                    sectorCenterX - p.x
+                );
 
+                p.x += Math.cos(a) * 2.5;
+                p.y += Math.sin(a) * 2.5;
+            }
+            else if(nearby > 0){
+
+                centerX /= nearby;
+                centerY /= nearby;
+
+                const dx = centerX - p.x;
+                const dy = centerY - p.y;
+                const d = Math.hypot(dx, dy);
+
+                if(d > 40){
+                    p.x += dx / d;
+                    p.y += dy / d;
+                }
+            }
+            else{
+
+                p.angle += (Math.random()-0.5)*0.03;
+
+                p.x += Math.cos(p.angle);
+                p.y += Math.sin(p.angle);
+            }
         }
+
+        
         pirates.forEach(other=>{
 
         if(other===p) return;
@@ -328,38 +420,36 @@ function updatePirates(){
 
         // Save nearby count
         p.groupSize=nearby+1;
-        if(!p.cooldown)
-    p.cooldown = 0;
 
-if(p.cooldown>0)
-    p.cooldown--;
+        if(p.cooldown>0)
+            p.cooldown--;
 
-const dx = player.x-p.x;
-const dy = player.y-p.y;
-const dist = Math.hypot(dx,dy);
+        const dx = player.x-p.x;
+        const dy = player.y-p.y;
+        const dist = Math.hypot(dx,dy);
 
-if(
-    p.groupSize>=5 &&
-    dist<900 &&
-    p.cooldown===0
-){
+        if(
+            p.groupSize>=5 &&
+            dist<900 &&
+            p.cooldown===0
+        ){
 
-    pirateMissiles.push({
+            pirateMissiles.push({
 
-        x:p.x,
-        y:p.y,
+                x:p.x,
+                y:p.y,
 
-        angle:Math.atan2(dy,dx),
+                angle:Math.atan2(dy,dx),
 
-        speed:5,
+                speed:5,
 
-        life:400
+                life:400
 
-    });
+            });
 
-    p.cooldown=180;
+            p.cooldown=180;
 
-}
+        }
 
         asteroids.forEach(a=>{
 
@@ -392,25 +482,34 @@ function updateAsteroids(){
         a.x += a.vx;
         a.y += a.vy;
 
-        if(a.x < a.radius){
-            a.x = a.radius;
+        const left   = a.sectorX * SECTOR_SIZE;
+        const right  = left + SECTOR_SIZE;
+        const top    = a.sectorY * SECTOR_SIZE;
+        const bottom = top + SECTOR_SIZE;
+
+        // Bounce off LEFT/RIGHT of its own sector
+        if(a.x < left + a.radius){
+            a.x = left + a.radius;
             a.vx *= -1;
         }
 
-        if(a.x > WORLD_SIZE-a.radius){
-            a.x = WORLD_SIZE-a.radius;
+        if(a.x > right - a.radius){
+            a.x = right - a.radius;
             a.vx *= -1;
         }
 
-        if(a.y < a.radius){
-            a.y = a.radius;
+        // Bounce off TOP/BOTTOM of its own sector
+        if(a.y < top + a.radius){
+            a.y = top + a.radius;
             a.vy *= -1;
         }
 
-        if(a.y > WORLD_SIZE-a.radius){
-            a.y = WORLD_SIZE-a.radius;
+        if(a.y > bottom - a.radius){
+            a.y = bottom - a.radius;
             a.vy *= -1;
         }
+
+        // Prevent asteroids overlapping
         asteroids.forEach(other=>{
 
             if(other===a) return;
@@ -419,7 +518,6 @@ function updateAsteroids(){
             const dy = a.y-other.y;
 
             const d = Math.hypot(dx,dy);
-
             const r = a.radius + other.radius;
 
             if(d<r && d>0){
@@ -701,22 +799,41 @@ function updateRespawns(){
 
         pirateRespawns[i].timer--;
 
-        if(pirateRespawns[i].timer<=0){
+        if(pirateRespawns[i].timer <= 0){
+
+            let sx, sy;
+
+            do{
+
+                sx = Math.floor(Math.random()*5);
+                sy = Math.floor(Math.random()*5);
+
+            }while(
+                (sx===0 && sy===4) ||
+                (sx===4 && sy===0)
+            );
+
+            const x = sx*SECTOR_SIZE + Math.random()*SECTOR_SIZE;
+            const y = sy*SECTOR_SIZE + Math.random()*SECTOR_SIZE;
 
             pirates.push({
 
-                x:Math.random()*WORLD_SIZE,
-                y:Math.random()*WORLD_SIZE,
+                x,
+                y,
+
+                homeX:sx,
+                homeY:sy,
 
                 angle:Math.random()*Math.PI*2,
-                speed:1+Math.random(),
 
                 hp:20,
-                cooldown:0
+                cooldown:0,
+                returning: false
 
             });
 
             pirateRespawns.splice(i,1);
+
         }
     }
 
@@ -898,16 +1015,23 @@ function drawGems(){
             sy>canvas.height+100
         ) return;
 
-        ctx.fillStyle="#5a4738";
+        ctx.fillStyle = "#5a4738";
 
         ctx.beginPath();
-        ctx.arc(
-            sx,
-            sy,
-            a.radius,
-            0,
-            Math.PI*2
-        );
+
+        a.points.forEach((p,i)=>{
+
+            const px = sx + Math.cos(p.angle)*p.r;
+            const py = sy + Math.sin(p.angle)*p.r;
+
+            if(i===0)
+                ctx.moveTo(px,py);
+            else
+                ctx.lineTo(px,py);
+
+        });
+
+        ctx.closePath();
         ctx.fill();
 
         ctx.strokeStyle="#7d624c";
