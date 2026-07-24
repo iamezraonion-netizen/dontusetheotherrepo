@@ -143,6 +143,34 @@ for(let i=0;i<330;i++){
     });
 
 }
+const asteroids = [];
+
+for(let field=0; field<40; field++){
+
+    const cx = Math.random()*WORLD_SIZE;
+    const cy = Math.random()*WORLD_SIZE;
+
+    const amount = 8 + Math.floor(Math.random()*12);
+
+    for(let i=0;i<amount;i++){
+
+        const angle = Math.random()*Math.PI*2;
+        const dist = Math.random()*350;
+
+        asteroids.push({
+
+            x:cx + Math.cos(angle)*dist,
+            y:cy + Math.sin(angle)*dist,
+
+            radius:45 + Math.random()*35,
+
+            vx:(Math.random()-0.5)*0.35,
+            vy:(Math.random()-0.5)*0.35
+        });
+
+    }
+
+}
 function updatePirates(){
 
     pirates.forEach(p=>{
@@ -333,6 +361,78 @@ if(
 
 }
 
+        asteroids.forEach(a=>{
+
+        const dx = p.x-a.x;
+        const dy = p.y-a.y;
+
+        const d = Math.hypot(dx,dy);
+
+        const r = a.radius + 12;
+
+        if(d<r && d>0){
+
+            const push = r-d;
+
+            p.x += dx/d*push;
+            p.y += dy/d*push;
+
+        }
+
+    });
+
+    });
+
+}
+
+function updateAsteroids(){
+
+    asteroids.forEach(a=>{
+
+        a.x += a.vx;
+        a.y += a.vy;
+
+        if(a.x < a.radius){
+            a.x = a.radius;
+            a.vx *= -1;
+        }
+
+        if(a.x > WORLD_SIZE-a.radius){
+            a.x = WORLD_SIZE-a.radius;
+            a.vx *= -1;
+        }
+
+        if(a.y < a.radius){
+            a.y = a.radius;
+            a.vy *= -1;
+        }
+
+        if(a.y > WORLD_SIZE-a.radius){
+            a.y = WORLD_SIZE-a.radius;
+            a.vy *= -1;
+        }
+        asteroids.forEach(other=>{
+
+            if(other===a) return;
+
+            const dx = a.x-other.x;
+            const dy = a.y-other.y;
+
+            const d = Math.hypot(dx,dy);
+
+            const r = a.radius + other.radius;
+
+            if(d<r && d>0){
+
+                const push = (r-d)/2;
+
+                a.x += dx/d*push;
+                a.y += dy/d*push;
+
+            }
+
+        });
+
     });
 
 }
@@ -429,42 +529,64 @@ if(keys["d"] || keys["arrowright"])
     camera.y=player.y-canvas.height/2;
     updatePirates();
     updatePirateMissiles();
+    updateAsteroids();
     updateCannons();
     updatePlayerBullets();
     updateGems();
     updateRespawns();
 
+    asteroids.forEach(a=>{
+
+        const dx = player.x-a.x;
+        const dy = player.y-a.y;
+
+        const d = Math.hypot(dx,dy);
+
+        const r = a.radius + 20;
+
+        if(d<r && d>0){
+
+            const push = r-d;
+
+            player.x += dx/d*push;
+            player.y += dy/d*push;
+
+        }
+
+    });
+
     if(Math.abs(player.speed)>0.2){
 
-    engineParticles.push({
+        engineParticles.push({
 
-        x:player.x-Math.cos(player.angle)*22,
-        y:player.y-Math.sin(player.angle)*22,
+            x:player.x-Math.cos(player.angle)*22,
+            y:player.y-Math.sin(player.angle)*22,
 
-        vx:-Math.cos(player.angle)*player.speed*0.5+(Math.random()-0.5),
-        vy:-Math.sin(player.angle)*player.speed*0.5+(Math.random()-0.5),
+            vx:-Math.cos(player.angle)*player.speed*0.5+(Math.random()-0.5),
+            vy:-Math.sin(player.angle)*player.speed*0.5+(Math.random()-0.5),
 
-        life:25,
-        size:3+Math.random()*2
+            life:25,
+            size:3+Math.random()*2
 
-    });
-    
+        });
+
+    }
+    // Update engine particles
     engineParticles.forEach(p=>{
 
-    p.x+=p.vx;
-    p.y+=p.vy;
+        p.x += p.vx;
+        p.y += p.vy;
 
-    p.life--;
-    p.size*=0.95;
+        p.life--;
+        p.size *= 0.95;
 
     });
 
+    // Remove dead particles
     for(let i=engineParticles.length-1;i>=0;i--){
 
-       if(engineParticles[i].life<=0)
-        engineParticles.splice(i,1);
-
-    }  
+        if(engineParticles[i].life<=0)
+            engineParticles.splice(i,1);
 
     }
     
@@ -506,7 +628,21 @@ function updatePlayerBullets(){
         b.x += Math.cos(b.angle)*b.speed;
         b.y += Math.sin(b.angle)*b.speed;
 
-        b.life--;
+        
+        asteroids.forEach(a=>{
+
+        const d = Math.hypot(
+            b.x-a.x,
+            b.y-a.y
+        );
+
+        if(d < a.radius){
+
+            b.life = 0;
+
+        }
+
+    });
 
         pirates.forEach(p=>{
 
@@ -634,6 +770,21 @@ function updatePirateMissiles(){
 
         m.life--;
 
+        asteroids.forEach(a=>{
+
+            const d = Math.hypot(
+                m.x-a.x,
+                m.y-a.y
+            );
+
+            if(d < a.radius){
+
+                m.life = 0;
+
+            }
+
+        });
+
         // Hit player (only outside safe zone)
         const d = Math.hypot(
             player.x - m.x,
@@ -733,6 +884,39 @@ function drawGems(){
         });
 
     }
+    function drawAsteroids(){
+
+    asteroids.forEach(a=>{
+
+        const sx = a.x-camera.x;
+        const sy = a.y-camera.y;
+
+        if(
+            sx<-100||
+            sy<-100||
+            sx>canvas.width+100||
+            sy>canvas.height+100
+        ) return;
+
+        ctx.fillStyle="#5a4738";
+
+        ctx.beginPath();
+        ctx.arc(
+            sx,
+            sy,
+            a.radius,
+            0,
+            Math.PI*2
+        );
+        ctx.fill();
+
+        ctx.strokeStyle="#7d624c";
+        ctx.lineWidth=4;
+        ctx.stroke();
+
+    });
+
+}
 
 function drawPirateMissiles(){
 
@@ -1141,6 +1325,7 @@ function draw(){
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
     drawStars();
+    drawAsteroids();
     drawBases();
 
     drawPirates();   
