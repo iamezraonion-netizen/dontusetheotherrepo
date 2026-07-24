@@ -470,8 +470,9 @@ if(keys["d"] || keys["arrowright"])
     
     if (player.hp <= 0) {
     player.hp = player.maxHp;
-    player.x = 1000;
-    player.y = WORLD_SIZE - 1000;
+    dropPlayerGems();
+    player.x = ALPHA_BASE.x;
+    player.y = ALPHA_BASE.y;
     player.speed = 0;
     }   else if (player.hp < player.maxHp) { // Changed to else if
     // Passive regeneration
@@ -582,6 +583,28 @@ function updateRespawns(){
             pirateRespawns.splice(i,1);
         }
     }
+
+}
+function dropPlayerGems(){
+
+    for(let i=0;i<player.gems;i++){
+
+        const angle = Math.random()*Math.PI*2;
+        const dist = Math.random()*35;
+
+        gems.push({
+
+            x: player.x + Math.cos(angle)*dist,
+            y: player.y + Math.sin(angle)*dist,
+
+            size:6,
+            pulse:Math.random()*Math.PI*2
+
+        });
+
+    }
+
+    player.gems = 0;
 
 }
 
