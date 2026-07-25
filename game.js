@@ -752,9 +752,28 @@ function updateLaser(){
         });
 
     }
-
+    
     if(!laser.target)
-        return;
+            return;
+
+    // Check if an asteroid blocks the laser
+    for(const a of asteroids){
+
+        if(lineIntersectsCircle(
+            player.x,
+            player.y,
+            laser.target.x,
+            laser.target.y,
+            a.x,
+            a.y,
+            a.radius
+        )){
+            return; // Beam blocked
+        }
+
+    }
+
+    
 
     laser.active=true;
 
@@ -771,6 +790,25 @@ function updateLaser(){
         // 20 hp over ~700 ms at 60fps
 
     }
+
+}
+function lineIntersectsCircle(x1,y1,x2,y2,cx,cy,r){
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    const lengthSq = dx*dx + dy*dy;
+
+    let t =
+        ((cx-x1)*dx + (cy-y1)*dy) /
+        lengthSq;
+
+    t = Math.max(0, Math.min(1, t));
+
+    const px = x1 + dx*t;
+    const py = y1 + dy*t;
+
+    return Math.hypot(cx-px, cy-py) < r;
 
 }
 
@@ -2013,6 +2051,45 @@ function drawMap(){
         Math.PI * 2
     );
     ctx.fill();
+
+    ctx.save();
+
+    ctx.fillStyle = "rgba(120,90,45,0.5)";
+    ctx.filter = "blur(18px)";
+
+   // Top
+    blob(1.45,0.95);
+    blob(2.50,0.95);
+
+    // Upper sides
+    blob(0.95,1.45);
+    blob(3.05,1.45);
+
+    // Left & Right
+    blob(0.90,2.50);
+    blob(3.10,2.50);
+
+    // Bottom
+    blob(1.45,3.05);
+    blob(2.50,3.05);
+
+    ctx.restore();
+
+    function blob(sectorX, sectorY){
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x + (sectorX+0.5)*mapSize/5,
+            y + (sectorY+0.5)*mapSize/5,
+            mapSize*0.10,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
 
    // Player (triangle)
     const px = mapX(player.x);
