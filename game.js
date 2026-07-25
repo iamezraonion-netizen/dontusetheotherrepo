@@ -161,6 +161,12 @@ const camera = {
     y:0
 };
 const engineParticles=[];
+const laser = {
+    range: 240,
+    target: null,
+    heat: 0,
+    active: false
+};
 
 const player = {
     x:1000,
@@ -669,6 +675,74 @@ function updateCannons(){
         player.cannonCooldown = 12;
     }
 }
+function updateLaser(){
+
+    laser.target = null;
+    laser.active = false;
+
+    if(!player.weapons.laser)
+        return;
+
+    let closest = Infinity;
+
+    // ---------- Find nearest missile ----------
+    pirateMissiles.forEach(m=>{
+
+        const d = Math.hypot(
+            m.x-player.x,
+            m.y-player.y
+        );
+
+        if(d<laser.range && d<closest){
+
+            closest=d;
+            laser.target=m;
+
+        }
+
+    });
+
+    // ---------- Otherwise nearest pirate ----------
+    if(!laser.target){
+
+        pirates.forEach(p=>{
+
+            const d=Math.hypot(
+                p.x-player.x,
+                p.y-player.y
+            );
+
+            if(d<laser.range && d<closest){
+
+                closest=d;
+                laser.target=p;
+
+            }
+
+        });
+
+    }
+
+    if(!laser.target)
+        return;
+
+    laser.active=true;
+
+    // continuous damage
+    if(laser.target.life!==undefined){
+
+        // missile
+        laser.target.life=0;
+
+    }else{
+
+        // pirate
+        laser.target.hp-=20/42;
+        // 20 hp over ~700 ms at 60fps
+
+    }
+
+}
 
 function update(){
     if(gameState!=="playing")
@@ -703,6 +777,7 @@ if(keys["d"] || keys["arrowright"])
     updatePirateMissiles();
     updateAsteroids();
     updateCannons();
+    updateLaser();
     updatePlayerBullets();
     updateGems();
     updateRespawns();
@@ -1330,6 +1405,84 @@ function drawPlayerBullets(){
     });
 
 }
+function drawLaser(){
+
+    if(!player.weapons.laser)
+        return;
+
+    // Draw range circle
+
+    ctx.strokeStyle="rgba(0,255,255,.25)";
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+    const turretRadius = 25;
+
+    ctx.strokeStyle = laser.active
+        ? "#55ffff"
+        : "rgba(85,255,255,0.25)";
+
+    ctx.lineWidth = 4;
+
+    ctx.beginPath();
+    ctx.arc(
+        player.x-camera.x,
+        player.y-camera.y,
+        turretRadius,
+        0,
+        Math.PI*2
+    );
+    ctx.stroke();
+
+    if(!laser.active)
+        return;
+
+    const tx=laser.target.x-camera.x;
+    const ty=laser.target.y-camera.y;
+
+    // Beam
+
+    ctx.strokeStyle="#66ffff";
+    ctx.lineWidth=4;
+
+    ctx.beginPath();
+    const angle = Math.atan2(
+        laser.target.y-player.y,
+        laser.target.x-player.x
+    );
+
+    const sx =
+        player.x +
+        Math.cos(angle)*25;
+
+    const sy =
+        player.y +
+        Math.sin(angle)*25;
+        ctx.moveTo(
+            sx-camera.x,
+            sy-camera.y
+        );
+
+        ctx.lineTo(
+            laser.target.x-camera.x,
+            laser.target.y-camera.y
+        );
+    ctx.lineTo(tx,ty);
+    ctx.stroke();
+
+    // Glow
+
+    ctx.strokeStyle="rgba(255,255,255,.6)";
+    ctx.lineWidth=1;
+
+    ctx.beginPath();
+    ctx.moveTo(
+        player.x-camera.x,
+        player.y-camera.y
+    );
+    ctx.lineTo(tx,ty);
+    ctx.stroke();
+}
 
 function drawPirates(){
 
@@ -1526,7 +1679,7 @@ function drawHUD(){
 
         ctx.fillText(
             "SAFE ZONE",
-            765,
+            850,
             125
         );
 
@@ -1676,6 +1829,7 @@ function draw(){
     drawGems();       
     drawPirateMissiles();
     drawPlayerBullets();
+    drawLaser();
     drawEngineParticles();
 
     drawShip();
