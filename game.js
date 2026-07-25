@@ -11,8 +11,8 @@ window.addEventListener("resize", () => {
 canvas.addEventListener("click", e=>{
     if(docked){
 
-        const w = 420;
-        const h = 260;
+        const w = 620;
+        const h = 460;
 
         const px = canvas.width/2 - w/2;
         const py = canvas.height/2 - h/2;
@@ -42,6 +42,7 @@ canvas.addEventListener("click", e=>{
 
     const x = canvas.width/2 - w/2;
     const y = canvas.height/2 - h/2;
+    
 
     if(
         e.offsetX >= x &&
@@ -60,6 +61,7 @@ canvas.addEventListener("click", e=>{
     }
 
 });
+const FONT = "'Orbitron', monospace";
 canvas.addEventListener("mousemove", e=>{
 
     if(gameState !== "menu"){
@@ -118,7 +120,7 @@ window.addEventListener("keydown", e=>{
         }
 
     }
-    if(key==="b" && docked && player.gems > 0){
+    if(key==="b" && docked && player.gems > 0 && dockPage==="main"){
 
         player.credits += player.gems * 100;
         player.gems = 0;
@@ -1174,10 +1176,10 @@ function drawGems(){
         ctx.fillStyle="white";
         ctx.textAlign="center";
 
-        ctx.font="30px Arial";
+        ctx.font=`30px ${FONT}`;
         ctx.fillText("Weapons",canvas.width/2,y+40);
 
-        ctx.font="24px Arial";
+        ctx.font=`24px ${FONT}`;
 
         ctx.fillText(
             "Laser",
@@ -1259,8 +1261,8 @@ function drawGems(){
 }
 function drawDock(){
 
-    const w = 420;
-    const h = 260;
+    const w = 620;
+    const h = 460;
 
     const x = canvas.width/2 - w/2;
     const y = canvas.height/2 - h/2;
@@ -1275,10 +1277,10 @@ function drawDock(){
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
 
-    ctx.font = "32px Arial";
+    ctx.font = `32px ${FONT}`;
     ctx.fillText(currentBase, canvas.width/2, y+45);
 
-    ctx.font = "22px Arial";
+    ctx.font = "22px ";
 
     ctx.fillText(
         "Credits: " + player.credits,
@@ -1300,13 +1302,13 @@ function drawDock(){
     // Weapons button
 
     ctx.fillStyle="#3366ff";
-    ctx.fillRect(x+95,y+185,230,42);
+    ctx.fillRect(x+190,y+185,230,42);
 
     ctx.strokeStyle="white";
-    ctx.strokeRect(x+95,y+185,230,42);
+    ctx.strokeRect(x+190,y+185,230,42);
 
     ctx.fillStyle="white";
-    ctx.font="22px Arial";
+    ctx.font=`22px ${FONT}`;
 
     ctx.fillText(
         "Weapons",
@@ -1319,7 +1321,7 @@ function drawDock(){
     ctx.fillText(
         "Press B to Sell All",
         canvas.width/2,
-        y+250
+        y+260
     );
 
     ctx.fillStyle="#ff0000";
@@ -1327,7 +1329,7 @@ function drawDock(){
     ctx.fillText(
         "Press E to Leave",
         canvas.width/2,
-        y+240
+        y+300
     );
 
 }
@@ -1416,7 +1418,7 @@ function drawLaser(){
     ctx.lineWidth=2;
 
     ctx.beginPath();
-    const turretRadius = 25;
+    const turretRadius = 37;
 
     ctx.strokeStyle = laser.active
         ? "#55ffff"
@@ -1453,11 +1455,11 @@ function drawLaser(){
 
     const sx =
         player.x +
-        Math.cos(angle)*25;
+        Math.cos(angle)*37;
 
     const sy =
         player.y +
-        Math.sin(angle)*25;
+        Math.sin(angle)*37;
         ctx.moveTo(
             sx-camera.x,
             sy-camera.y
@@ -1470,18 +1472,7 @@ function drawLaser(){
     ctx.lineTo(tx,ty);
     ctx.stroke();
 
-    // Glow
-
-    ctx.strokeStyle="rgba(255,255,255,.6)";
-    ctx.lineWidth=1;
-
-    ctx.beginPath();
-    ctx.moveTo(
-        player.x-camera.x,
-        player.y-camera.y
-    );
-    ctx.lineTo(tx,ty);
-    ctx.stroke();
+    
 }
 
 function drawPirates(){
@@ -1600,7 +1591,7 @@ function drawBase(x,y,color,name){
     ctx.stroke();
 
     ctx.fillStyle="white";
-    ctx.font="20px Arial";
+    ctx.font=`20px ${FONT}`;
     ctx.textAlign="center";
     ctx.fillText(name,sx,sy+160);
 
@@ -1659,7 +1650,7 @@ function drawShip(){
 function drawHUD(){
 
     ctx.fillStyle="white";
-    ctx.font="20px Arial";
+    ctx.font=`20px ${FONT}`;
 
 
     ctx.fillText(
@@ -1675,12 +1666,24 @@ function drawHUD(){
     if(player.inSafeZone){
 
         ctx.fillStyle = "#66ff66";
-        ctx.font = "26px Arial";
+        ctx.font = `26px ${FONT}`;
 
         ctx.fillText(
             "SAFE ZONE",
             850,
             125
+        );
+
+    }
+    if(player.inSafeZone){
+
+        ctx.fillStyle = "white";
+        ctx.font = `20px ${FONT}`;
+
+        ctx.fillText(
+            "press E to dock",
+            850,
+            160
         );
 
     }
@@ -1781,7 +1784,7 @@ function drawMenu(){
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
     ctx.fillStyle = "white";
-    ctx.font = "64px Arial";
+    ctx.font = `64px ${FONT}`;
     ctx.textAlign = "center";
 
     ctx.fillText(
@@ -1805,7 +1808,7 @@ function drawMenu(){
     ctx.strokeRect(x,y,w,h);
 
     ctx.fillStyle = "white";
-    ctx.font = "36px Arial";
+    ctx.font = `32px ${FONT}`;
     ctx.fillText("PLAY",canvas.width/2,y+47);
   
 
