@@ -267,7 +267,7 @@ asteroidSectors.forEach(sec=>{
     const left = sec.x * SECTOR_SIZE;
     const top = sec.y * SECTOR_SIZE;
 
-    for(let i=0;i<33;i++){
+    for(let i=0;i<40;i++){
 
         const radius = 45 + Math.random()*35;
 
@@ -1791,6 +1791,180 @@ function drawHUD(){
     }
 
 }
+
+
+
+function drawRadar(){
+
+    const size = 210;
+
+    const x = canvas.width - size - 25;
+    const y = 25;
+
+    const range = 900;   // world units shown
+
+    // ==========================
+    // Background
+    // ==========================
+
+    ctx.save();
+
+    ctx.fillStyle = "rgba(5,15,30,0.78)";
+
+    const c = 14;
+
+    ctx.beginPath();
+
+    ctx.moveTo(x+c,y);
+    ctx.lineTo(x+size-c,y);
+    ctx.lineTo(x+size,y+c);
+    ctx.lineTo(x+size,y+size-c);
+    ctx.lineTo(x+size-c,y+size);
+    ctx.lineTo(x+c,y+size);
+    ctx.lineTo(x,y+size-c);
+    ctx.lineTo(x,y+c);
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowColor="#00d8ff";
+    ctx.shadowBlur=12;
+
+    ctx.strokeStyle="#00d8ff";
+    ctx.lineWidth=2;
+    ctx.stroke();
+
+    ctx.shadowBlur=0;
+
+    // Clip everything inside
+    ctx.beginPath();
+    ctx.rect(x,y,size,size);
+    ctx.clip();
+
+    const centreX = x + size/2;
+    const centreY = y + size/2;
+    function radarPos(wx, wy){
+
+        return {
+
+            x: centreX + (wx-player.x)/range*105,
+            y: centreY + (wy-player.y)/range*105
+
+        };
+
+    }
+
+    ctx.strokeStyle="rgba(0,220,255,0.25)";
+    ctx.lineWidth=1;
+
+    ctx.beginPath();
+
+    ctx.arc(centreX,centreY,40,0,Math.PI*2);
+    ctx.arc(centreX,centreY,75,0,Math.PI*2);
+    ctx.arc(centreX,centreY,105,0,Math.PI*2);
+
+    ctx.moveTo(centreX, y);
+    ctx.lineTo(centreX, y+size);
+
+    ctx.moveTo(x, centreY);
+    ctx.lineTo(x+size, centreY);
+
+    ctx.stroke();
+
+    asteroids.forEach(a=>{
+
+        const p = radarPos(a.x,a.y);
+
+        if(
+            p.x<x ||
+            p.x>x+size ||
+            p.y<y ||
+            p.y>y+size
+        ) return;
+
+        ctx.fillStyle = "#6f5644";
+
+        ctx.beginPath();
+
+        for(let i = 0; i < 8; i++){
+
+            const ang = i * Math.PI / 4;
+
+            // Slightly different radius for each corner
+            const r = 5 + (i % 2) * 2;
+
+            const px = p.x + Math.cos(ang) * r;
+            const py = p.y + Math.sin(ang) * r;
+
+            if(i === 0)
+                ctx.moveTo(px, py);
+            else
+                ctx.lineTo(px, py);
+        }
+
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "#8a6c54";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    });
+        ctx.fillStyle="#ff4444";
+
+    pirates.forEach(p=>{
+
+        const r=radarPos(p.x,p.y);
+
+        if(
+            r.x<x||
+            r.x>x+size||
+            r.y<y||
+            r.y>y+size
+        ) return;
+
+        ctx.beginPath();
+        ctx.arc(r.x,r.y,3,0,Math.PI*2);
+        ctx.fill();
+
+    });
+        [ALPHA_BASE,BETA_BASE].forEach(base=>{
+
+        const b=radarPos(base.x,base.y);
+
+        if(
+            b.x<x||
+            b.x>x+size||
+            b.y<y||
+            b.y>y+size
+        ) return;
+
+        ctx.fillStyle="#66ffcc";
+
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,9,0,Math.PI*2);
+        ctx.fill();
+
+    });
+    ctx.save();
+
+    ctx.translate(centreX,centreY);
+    ctx.rotate(player.angle);
+
+    ctx.fillStyle="#66bbff";
+
+    ctx.beginPath();
+
+    ctx.moveTo(6,0);
+    ctx.lineTo(-4,-4);
+    ctx.lineTo(-4,4);
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+    ctx.restore();
+}
+
 function drawMap(){
 
     const mapSize = 320;
@@ -1939,6 +2113,7 @@ function draw(){
 
     drawShip();
     drawHUD();
+    drawRadar();
 
 
     if(showMap)
