@@ -122,11 +122,43 @@ window.addEventListener("keydown", e=>{
         player.gems = 0;
 
     }
-    if(key==="b" && docked && dockPage==="weapons"){
-
-        player.weapons.laser = true;
-
-    }
+    
 });
 addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+canvas.addEventListener("click", e=>{
+
+    if(gameState!="playing")
+        return;
+
+    if(!docked)
+        return;
+
+    const rect=canvas.getBoundingClientRect();
+
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+
+    uiButtons.forEach(button=>{
+
+        if(
+
+            mx>=button.x &&
+            mx<=button.x+button.w &&
+            my>=button.y &&
+            my<=button.y+button.h
+
+        ){
+
+            if(button.action=="buyLaser"){
+
+                player.weapons.laser=true;
+
+            }
+
+        }
+
+    });
+
+});

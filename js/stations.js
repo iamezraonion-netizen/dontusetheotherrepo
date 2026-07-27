@@ -112,60 +112,102 @@ function drawDock(){
     );
 
 }
+
 function drawWeapons(){
 
-        const w=420;
-        const h=260;
+    uiButtons.length = 0;
 
-        const x=canvas.width/2-w/2;
-        const y=canvas.height/2-h/2;
+    const w = 700;
+    const h = 500;
 
-        ctx.fillStyle="rgba(0,0,0,.9)";
-        ctx.fillRect(x,y,w,h);
+    const x = canvas.width/2 - w/2;
+    const y = canvas.height/2 - h/2;
 
-        ctx.strokeStyle="white";
-        ctx.lineWidth=2;
-        ctx.strokeRect(x,y,w,h);
+    ctx.fillStyle = "rgba(0,0,0,0.9)";
+    ctx.fillRect(x,y,w,h);
 
-        ctx.fillStyle="white";
-        ctx.textAlign="center";
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x,y,w,h);
 
-        ctx.font=`30px ${FONT}`;
-        ctx.fillText("Weapons",canvas.width/2,y+40);
+    ctx.fillStyle = "white";
+    ctx.font = `34px ${FONT}`;
+    ctx.textAlign = "center";
 
-        ctx.font=`24px ${FONT}`;
+    ctx.fillText(
+        "Weapons",
+        canvas.width/2,
+        y+45
+    );
 
-        ctx.fillText(
-            "Laser",
-            canvas.width/2,
-            y+95
-        );
+    drawWeaponCard(
+        x+40,
+        y+80,
+        "Laser",
+        "Continuous beam",
+        "FREE",
+        player.weapons.laser
+    );
 
-        ctx.fillText(
-            "Cost: FREE",
-            canvas.width/2,
-            y+130
-        );
+}
+function drawWeaponCard(x,y,name,description,cost,owned){
 
-        ctx.fillStyle=
-            player.weapons.laser
-            ? "#66ff66"
-            : "white";
+    const w = 290;
+    const h = 120;
 
-        ctx.fillText(
-            player.weapons.laser
-            ? "OWNED"
-            : "Press B to Buy",
-            canvas.width/2,
-            y+185
-        );
 
-        ctx.fillStyle="#ff6666";
+    ctx.fillStyle = "#102030";
+    ctx.fillRect(x,y,w,h);
 
-        ctx.fillText(
-            "Press E to Return",
-            canvas.width/2,
-            y+230
-        );
+    ctx.strokeStyle = "#66ccff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x,y,w,h);
+
+    ctx.fillStyle = "white";
+
+    ctx.textAlign = "left";
+
+    ctx.font = `24px ${FONT}`;
+    ctx.fillText(name,x+15,y+30);
+
+    ctx.font = `16px ${FONT}`;
+    ctx.fillText(description,x+15,y+60);
+
+    ctx.fillStyle="#ffd966";
+
+    ctx.fillText(cost,x+15,y+95);
+
+    // Button
+
+    const bx=x+245;
+    const by=y+38;
+
+    uiButtons.push({
+
+        x:bx,
+        y:by,
+        w:30,
+        h:30,
+
+        action:"buyLaser"
+
+    });
+    
+    ctx.fillStyle=owned ? "#33aa33" : "#3a8cff";
+
+    ctx.fillRect(bx,by,30,30);
+
+    ctx.strokeStyle="white";
+    ctx.strokeRect(bx,by,30,30);
+
+    ctx.fillStyle="white";
+    ctx.textAlign="center";
+    ctx.font="20px Arial";
+
+    ctx.fillText(
+        owned ? "✓" : "🛒",
+        bx+15,
+        by+22
+    );
 
 }

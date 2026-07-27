@@ -3,7 +3,7 @@ function drawHUD(){
     const panelX = 20;
     const panelY = 20;
     const panelW = 250;
-    const panelH = 95;
+    const panelH = 160;
 
     ctx.fillStyle = "rgba(5,15,30,0.75)";
 
@@ -86,7 +86,67 @@ function drawHUD(){
         panelX+35,
         panelY+70
     );
-    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#8fe8ff";
+    ctx.font = `18px ${FONT}`;
+
+    ctx.fillText(
+        "LEVEL: " + player.level,
+        panelX + 10,
+        panelY + 100
+    );
+
+    if(player.level < 10){
+
+        ctx.fillText(
+            "XP: " + player.xp + " / " + xpNeeded(),
+            panelX + 10,
+            panelY + 125
+        );
+
+    }else{
+
+        ctx.fillText(
+            "XP: MAX",
+            panelX + 10,
+            panelY + 125
+        );
+
+    }
+
+    const barX = panelX + 10;
+    const barY = panelY + 135;
+    const barW = 220;
+    const barH = 12;
+
+    ctx.fillStyle = "#222";
+    ctx.fillRect(barX, barY, barW, barH);
+
+    let percent = 1;
+
+    if(player.level < 10){
+
+        percent = player.xp / xpNeeded();
+
+    }
+
+    ctx.fillStyle = "#55bbff";
+    ctx.fillRect(
+        barX,
+        barY,
+        barW * percent,
+        barH
+    );
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+        barX,
+        barY,
+        barW,
+        barH
+    );
+   ctx.textAlign = "center";
 
     if(player.inSafeZone){
 
@@ -95,22 +155,22 @@ function drawHUD(){
 
         ctx.fillText(
             "STATION PERIMETER",
-            850,
+            canvas.width / 2,
             125
         );
 
     }
+
     if(player.inSafeZone){
 
         ctx.fillStyle = "white";
         ctx.font = `20px ${FONT}`;
 
         ctx.fillText(
-            "press E to dock",
-            850,
+            "Press E to dock",
+            canvas.width / 2,
             160
         );
 
     }
-
 }

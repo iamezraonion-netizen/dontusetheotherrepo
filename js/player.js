@@ -1,7 +1,13 @@
 function updatePlayer(){
     if(gameState!=="playing")
-        return;
-// Forward
+        return; 
+
+if(keys["l"]){
+
+    gainXP(1);
+
+}
+    // Forward
 if(keys["w"] || keys["arrowup"])
     player.speed=Math.min(player.speed+0.15,player.maxSpeed);
 
@@ -163,6 +169,8 @@ function updatePlayerBullets(){
                 p.hp -= 10;
 
                 b.life = 0;
+
+            
             }
 
         });
@@ -174,24 +182,8 @@ function updatePlayerBullets(){
 
         if(pirates[i].hp<=0){
 
-            // Drop a gem
-            gems.push({
+            killPirate(pirates[i]);
 
-                x: pirates[i].x,
-                y: pirates[i].y,
-
-                size: 6,
-                pulse: Math.random() * Math.PI * 2
-
-            });
-
-            // Schedule pirate respawn
-            pirateRespawns.push({
-                timer:360    // 6 seconds
-            });
-
-            // Remove pirate
-            pirates.splice(i,1);
         }
     }
 

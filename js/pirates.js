@@ -132,7 +132,7 @@ function updatePirates(){
 });
 
         
-        const dxPlayer = p.x - player.x;
+    const dxPlayer = p.x - player.x;
     const dyPlayer = p.y - player.y;
     const hit = Math.hypot(dxPlayer, dyPlayer);
 
@@ -403,5 +403,32 @@ function drawPirateMissiles(){
         ctx.restore();
 
     });
+
+}
+function killPirate(p){
+
+   
+    gainXP(20);
+
+    // Drop gem
+    gems.push({
+        x:p.x,
+        y:p.y,
+        size:6,
+        pulse:0
+    });
+
+    // Respawn timer
+    pirateRespawns.push({
+        x:p.x,
+        y:p.y,
+        timer:600
+    });
+
+    // Remove pirate
+    pirates.splice(
+        pirates.indexOf(p),
+        1
+    );
 
 }

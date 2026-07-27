@@ -30,6 +30,7 @@ const pirateMissiles = [];
 const playerBullets = [];
 const gems = [];
 const pirateRespawns = [];
+const uiButtons = [];
 
 const camera = {
     x:0,
@@ -58,12 +59,22 @@ const player={
     maxHp:100,
     healRate:0.015,
 
+    level: 1,
+    xp: 0,
+    renown: 0,
+
     gems:0,
     credits:0,
 
     weapons:{
         laser:false
     },
+    
+    ship: "scout",
+
+    ownedShips: [
+        "scout"
+    ],
 
     cannonCooldown:0
 };
