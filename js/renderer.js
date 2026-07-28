@@ -137,6 +137,9 @@ function draw(){
 
         if(dockPage==="weapons")
             drawWeapons();
+        
+        if(dockPage=="ships")
+            drawShips();
 
     }
 }

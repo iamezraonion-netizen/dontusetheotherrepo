@@ -70,11 +70,19 @@ const player={
         laser:false
     },
     
-    ship: "scout",
+    ships:{
 
-    ownedShips: [
-        "scout"
-    ],
+        scout:true,
+
+            fighter:false,
+            frigate:false,
+            destroyer:false,
+            cruiser:false,
+            flagship:false
+
+        },
+
+    currentShip:"scout",
 
     cannonCooldown:0
 };

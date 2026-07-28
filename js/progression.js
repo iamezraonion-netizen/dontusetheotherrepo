@@ -66,10 +66,10 @@ function shipUnlocked(ship){
             return player.level >= 3;
 
         case "frigate":
-            return player.level >= 7;
+            return player.level >= 5;
 
         case "destroyer":
-            return player.level >= 10;
+            return player.level >= 7;
 
         case "cruiser":
             return player.level >= 10;

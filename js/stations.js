@@ -94,13 +94,36 @@ function drawDock(){
         canvas.width/2,
         y+213
     );
+    // Ships button
 
-    ctx.fillStyle="#66ff66";
+    ctx.fillStyle="#33bb88";
+    ctx.fillRect(x+190,y+240,230,42);
+
+    ctx.strokeStyle="white";
+    ctx.strokeRect(x+190,y+240,230,42);
+
+    ctx.fillStyle="white";
+    ctx.font=`22px ${FONT}`;
 
     ctx.fillText(
-        "Press B to Sell All",
+        "Ships",
         canvas.width/2,
-        y+260
+        y+268
+    );
+    // Sell Button
+
+    ctx.fillStyle="#44bb44";
+    ctx.fillRect(x+190, y+295, 230, 42);
+
+    ctx.strokeStyle="white";
+    ctx.strokeRect(x+190, y+295, 230, 42);
+
+    ctx.fillStyle="white";
+    ctx.font=`22px ${FONT}`;
+    ctx.fillText(
+        "Sell Gems",
+        canvas.width/2,
+        y+323
     );
 
     ctx.fillStyle="#ff0000";
@@ -108,10 +131,11 @@ function drawDock(){
     ctx.fillText(
         "Press E to Leave",
         canvas.width/2,
-        y+300
+        y+380
     );
 
 }
+
 
 function drawWeapons(){
 
@@ -140,6 +164,7 @@ function drawWeapons(){
         y+45
     );
 
+
     drawWeaponCard(
         x+40,
         y+80,
@@ -149,7 +174,111 @@ function drawWeapons(){
         player.weapons.laser
     );
 
+    // Close button
+    ctx.fillStyle = "#aa2222";
+    ctx.fillRect(x + w - 45, y + 10, 35, 35);
+
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x + w - 45, y + 10, 35, 35);
+
+    ctx.fillStyle = "white";
+    ctx.font = `22px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText("✕", x + w - 27, y + 35);
+
 }
+
+function drawShips(){
+
+    uiButtons.length = 0;
+
+    const w=700;
+    const h=500;
+
+    const x=canvas.width/2-w/2;
+    const y=canvas.height/2-h/2;
+
+    ctx.fillStyle="rgba(0,0,0,.92)";
+    ctx.fillRect(x,y,w,h);
+
+    ctx.strokeStyle="white";
+    ctx.lineWidth=2;
+    ctx.strokeRect(x,y,w,h);
+
+    // Title
+
+    ctx.fillStyle="white";
+    ctx.font=`34px ${FONT}`;
+    ctx.textAlign="center";
+
+    ctx.fillText(
+        "Ships",
+        canvas.width/2,
+        y+45
+    );
+
+    // Close button
+    ctx.fillStyle = "#aa2222";
+    ctx.fillRect(x + w - 45, y + 10, 35, 35);
+
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x + w - 45, y + 10, 35, 35);
+
+    ctx.fillStyle = "white";
+    ctx.font = `22px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText("✕", x + w - 27, y + 35);
+
+    drawShipCard(
+        x+25,
+        y+75,
+        "Scout",
+        "scout",
+        2
+    );
+
+    drawShipCard(
+        x+25,
+        y+170,
+        "Fighter",
+        "fighter",
+        3
+    );
+
+    drawShipCard(
+        x+25,
+        y+265,
+        "Frigate",
+        "frigate",
+        4
+    );
+
+    drawShipCard(
+        x+360,
+        y+75,
+        "Destroyer",
+        "destroyer",
+        5
+    );
+
+    drawShipCard(
+        x+360,
+        y+170,
+        "Cruiser",
+        "cruiser",
+        6
+    );
+
+    drawShipCard(
+        x+360,
+        y+265,
+        "Flagship",
+        "flagship",
+        7
+    );
+
+}
+
 function drawWeaponCard(x,y,name,description,cost,owned){
 
     const w = 290;
@@ -193,7 +322,7 @@ function drawWeaponCard(x,y,name,description,cost,owned){
 
     });
     
-    ctx.fillStyle=owned ? "#33aa33" : "#3a8cff";
+    ctx.fillStyle=owned ? "#33aa33" : "#ffa03a";
 
     ctx.fillRect(bx,by,30,30);
 
@@ -209,5 +338,128 @@ function drawWeaponCard(x,y,name,description,cost,owned){
         bx+15,
         by+22
     );
+
+}
+function drawShipCard(x,y,title,id,slots){
+
+    let status="";
+    let color="#888888";
+
+    if(player.ships[id]){
+
+        if(player.currentShip==id){
+
+            status="USING";
+            color="#66ff66";
+
+        }else{
+
+            status="USE";
+            color="#66ccff";
+
+        }
+
+    }else if(shipUnlocked(id)){
+
+        status="BUY";
+        color="#ffee66";
+
+    }else{
+
+        switch(id){
+
+            case "fighter":
+                status="Lv 3";
+                break;
+
+            case "frigate":
+                status="Lv 5";
+                break;
+
+            case "destroyer":
+                status="Lv 7";
+                break;
+
+            case "cruiser":
+                status="Lv 10";
+                break;
+
+            case "flagship":
+                status="1 Renown";
+                break;
+
+        }
+
+    }
+
+    // Card
+
+    ctx.fillStyle="rgba(25,35,55,.9)";
+    ctx.fillRect(x,y,300,80);
+
+    ctx.strokeStyle="white";
+    ctx.lineWidth=2;
+    ctx.strokeRect(x,y,300,80);
+
+    ctx.fillStyle="white";
+    ctx.textAlign="left";
+    ctx.font=`22px ${FONT}`;
+    ctx.fillText(title,x+18,y+28);
+
+    ctx.fillStyle="#88ddff";
+    ctx.font=`18px ${FONT}`;
+    ctx.fillText(slots+" Weapon Slots",x+18,y+55);
+
+    // If unlocked and not scout, show shopping button
+
+    if(status=="BUY" || status=="USE"){
+
+        const bx=x+255;
+        const by=y+24;
+
+        uiButtons.push({
+
+            x:bx,
+            y:by,
+            w:30,
+            h:30,
+
+            action:status=="BUY"
+                ? "buy_"+id
+                : "use_"+id
+
+        });
+
+        ctx.fillStyle="#ffa03a";
+        ctx.fillRect(bx,by,30,30);
+
+        ctx.strokeStyle="white";
+        ctx.strokeRect(bx,by,30,30);
+
+        ctx.fillStyle="white";
+        ctx.textAlign="center";
+        ctx.font="20px Arial";
+
+        ctx.fillText(
+            status=="BUY" ? "🛒" : "▶",
+            bx+15,
+            by+22
+        );
+
+    }else{
+
+        ctx.fillStyle=color;
+        ctx.textAlign="right";
+        ctx.font=`18px ${FONT}`;
+
+        ctx.fillText(
+            status,
+            x+280,
+            y+45
+        );
+
+    }
+
+    ctx.textAlign="center";
 
 }
