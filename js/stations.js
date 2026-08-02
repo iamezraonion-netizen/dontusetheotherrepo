@@ -171,8 +171,70 @@ function drawWeapons(){
         "Laser",
         "Continuous beam",
         "FREE",
-        player.weapons.laser
+        player.weapons.laser,
+        "buyLaser"
     );
+
+    drawWeaponCard(
+        x+360,
+        y+80,
+        "Plasma Field",
+        "Damage radius",
+        "100",
+        player.weapons.plasma,
+        "buyPlasma"
+    );
+
+    ctx.fillStyle="white";
+    ctx.font=`26px ${FONT}`;
+    ctx.textAlign="left";
+
+    
+
+    // Divider
+    ctx.strokeStyle="#555";
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+    ctx.moveTo(x+40,y+255);
+    ctx.lineTo(x+w-40,y+255);
+    ctx.stroke();
+
+    ctx.font=`22px ${FONT}`;
+    ctx.fillText("Equip Weapons",x+40,y+285);
+
+    // ----------------------------
+    // Weapon Slots
+    // ----------------------------
+
+    ctx.fillStyle = "white";
+    ctx.font = `26px ${FONT}`;
+    ctx.textAlign = "left";
+
+    ctx.fillText("Weapon Slots", x+40, y+255);
+
+    const totalSlots = currentShipSlots();
+
+    const leftX = x + 40;
+    const rightX = x + 360;
+
+    const startY = y + 315;
+
+    for(let i=0;i<totalSlots;i++){
+
+        const column = i < 4 ? 0 : 1;
+
+        const row = column == 0
+            ? i
+            : i - 4;
+
+        drawWeaponSlot(
+            column == 0 ? leftX : rightX,
+            startY + row * 45,
+            i
+        );
+
+    }
 
     // Close button
     ctx.fillStyle = "#aa2222";
@@ -279,10 +341,18 @@ function drawShips(){
 
 }
 
-function drawWeaponCard(x,y,name,description,cost,owned){
+function drawWeaponCard(
+    x,
+    y,
+    name,
+    description,
+    cost,
+    owned,
+    action
+){
 
     const w = 290;
-    const h = 120;
+    const h = 95;
 
 
     ctx.fillStyle = "#102030";
@@ -300,16 +370,16 @@ function drawWeaponCard(x,y,name,description,cost,owned){
     ctx.fillText(name,x+15,y+30);
 
     ctx.font = `16px ${FONT}`;
-    ctx.fillText(description,x+15,y+60);
+    ctx.fillText(description,x+15,y+50);
 
     ctx.fillStyle="#ffd966";
 
-    ctx.fillText(cost,x+15,y+95);
+    ctx.fillText(cost,x+15,y+75);
 
     // Button
 
     const bx=x+245;
-    const by=y+38;
+    const by=y+28;
 
     uiButtons.push({
 
@@ -318,7 +388,7 @@ function drawWeaponCard(x,y,name,description,cost,owned){
         w:30,
         h:30,
 
-        action:"buyLaser"
+        action:action
 
     });
     
@@ -461,5 +531,70 @@ function drawShipCard(x,y,title,id,slots){
     }
 
     ctx.textAlign="center";
+
+}
+function openWeaponDropdown(slot,x,y){
+
+    weaponDropdown={
+
+        slot,
+        x,
+        y,
+
+        options:availableWeapons()
+
+    };
+
+}
+function closeWeaponDropdown(){
+
+    weaponDropdown=null;
+
+}
+function drawWeaponSlot(x,y,slot){
+
+    const weapon=player.weaponSlots[slot];
+
+    ctx.fillStyle="#203040";
+    ctx.fillRect(x,y,220,30);
+
+    ctx.strokeStyle="white";
+    ctx.strokeRect(x,y,220,30);
+
+    ctx.fillStyle="white";
+    ctx.font=`16px ${FONT}`;
+    ctx.textAlign="left";
+
+    ctx.fillText(
+
+        weapon ?? "Empty",
+
+        x+10,
+        y+20
+
+    );
+
+    ctx.textAlign="right";
+
+    ctx.fillText(
+
+        "▼",
+
+        x+205,
+        y+20
+
+    );
+
+    uiButtons.push({
+
+        x,
+        y,
+
+        w:220,
+        h:30,
+
+        action:"slot_"+slot
+
+    });
 
 }

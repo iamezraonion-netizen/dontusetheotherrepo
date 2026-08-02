@@ -43,3 +43,30 @@ function lineIntersectsCircle(x1,y1,x2,y2,cx,cy,r){
     return Math.hypot(cx-px, cy-py) < r;
 
 }
+
+function weaponAlreadyEquipped(name){
+
+    return player.weaponSlots.includes(name);
+
+}
+
+function availableWeapons(){
+
+    const list=[];
+
+    for(const weapon in player.weapons){
+
+        if(player.weapons[weapon]<=0)
+            continue;
+
+        if(weaponAlreadyEquipped(weapon))
+            continue;
+
+        list.push(weapon);
+
+    }
+
+    return list;
+    list.push(null);
+
+}

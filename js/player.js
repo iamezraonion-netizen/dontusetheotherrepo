@@ -4,7 +4,8 @@ function updatePlayer(){
 
 if(keys["l"]){
 
-    gainXP(1);
+    gainXP(100);
+    
 
 }
     // Forward
@@ -38,6 +39,7 @@ if(keys["d"] || keys["arrowright"])
     updateAsteroids();
     updateCannons();
     updateLaser();
+    updatePlasma();
     updatePlayerBullets();
     updateGems();
     updateRespawns();
@@ -333,7 +335,7 @@ function drawEngineParticles(){
     ctx.globalAlpha=1;
 
 } 
-function drawShip(){
+function drawScout(){
 
     const sx = player.x - camera.x;
     const sy = player.y - camera.y;
@@ -356,29 +358,221 @@ function drawShip(){
 
     ctx.restore();
 
-    // ===== HP BAR =====
+}
 
-    const barWidth = 44;
-    const barHeight = 4;
+function drawFighter(){
 
-    const hpX = sx - barWidth/2;
-    const hpY = sy - 34;
+    ctx.save();
+
+    ctx.translate(
+        player.x-camera.x,
+        player.y-camera.y
+    );
+
+    ctx.rotate(player.angle);
+
+    ctx.strokeStyle="#88ddff";
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+    ctx.moveTo(24,0);
+
+    ctx.lineTo(-10,-18);
+
+    ctx.lineTo(-4,0);
+
+    ctx.lineTo(-10,18);
+
+    ctx.closePath();
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+function drawFrigate(){
+
+    ctx.save();
+
+    ctx.translate(
+        player.x-camera.x,
+        player.y-camera.y
+    );
+
+    ctx.rotate(player.angle);
+
+    ctx.strokeStyle="#22ffee";
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+    ctx.moveTo(18,-18);
+
+    ctx.lineTo(28,0);
+
+    ctx.lineTo(18,18);
+
+    ctx.lineTo(-6,10);
+
+    ctx.lineTo(-12,18);
+
+    ctx.lineTo(-12,-18);
+
+    ctx.lineTo(-6,-10);
+
+    ctx.closePath();
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+function drawDestroyer(){
+
+    ctx.save();
+
+    ctx.translate(
+        player.x-camera.x,
+        player.y-camera.y
+    );
+
+    ctx.rotate(player.angle);
+
+    ctx.strokeStyle="#4f7b7d";
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+    ctx.moveTo(24,0);
+
+    ctx.lineTo(8,-20);
+
+    ctx.lineTo(-12,-12);
+
+    ctx.lineTo(-4,0);
+
+    ctx.lineTo(-12,12);
+
+    ctx.lineTo(8,20);
+
+    ctx.closePath();
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+function drawCruiser(){
+
+    ctx.save();
+
+    ctx.translate(
+        player.x - camera.x,
+        player.y - camera.y
+    );
+
+    ctx.rotate(player.angle);
+
+    ctx.strokeStyle="#77f6ff";
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+    ctx.moveTo(22,0);
+
+    ctx.lineTo(12,-22);
+
+    ctx.lineTo(-4,-10);
+
+    ctx.lineTo(-12,-20);
+
+    ctx.lineTo(-18,0);
+
+    ctx.lineTo(-12,20);
+
+    ctx.lineTo(-4,10);
+
+    ctx.lineTo(12,22);
+
+    ctx.closePath();
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+function drawFlagship(){
+
+    ctx.save();
+
+    ctx.translate(
+        player.x-camera.x,
+        player.y-camera.y
+    );
+
+    ctx.rotate(player.angle);
+
+    ctx.strokeStyle="#ffd84d";
+    ctx.lineWidth=4;
+
+    ctx.beginPath();
+
+    ctx.moveTo(34,0);
+
+    ctx.lineTo(16,-26);
+
+    ctx.lineTo(-16,-18);
+
+    ctx.lineTo(-26,0);
+
+    ctx.lineTo(-16,18);
+
+    ctx.lineTo(16,26);
+
+    ctx.closePath();
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+function drawPlayerBars(){
+
+    const sx = player.x - camera.x;
+    const sy = player.y - camera.y;
+
+    const width = 46;
+    const height = 5;
+
+    const x = sx - width/2;
+    const y = sy - 34;
 
     // Background
-    ctx.fillStyle = "#222";
-    ctx.fillRect(hpX, hpY, barWidth, barHeight);
 
-    // Health
+    ctx.fillStyle = "#222";
+    ctx.fillRect(x,y,width,height);
+
+    // HP
+
     ctx.fillStyle = "#44ff44";
+
     ctx.fillRect(
-        hpX,
-        hpY,
-        barWidth * (player.hp / player.maxHp),
-        barHeight
+        x,
+        y,
+        width * (player.hp/player.maxHp),
+        height
     );
 
     // Border
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(hpX, hpY, barWidth, barHeight);
+
+    ctx.strokeStyle="white";
+    ctx.lineWidth=1;
+    ctx.strokeRect(x,y,width,height);
+
 }

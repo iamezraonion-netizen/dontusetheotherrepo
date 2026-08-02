@@ -25,6 +25,7 @@ let gameState = "menu";
 let showMap = false;
 let docked = false;
 let currentBase = null;
+let weaponDropdown = null;
 
 const pirateMissiles = [];
 const playerBullets = [];
@@ -64,11 +65,23 @@ const player={
     renown: 0,
 
     gems:0,
-    credits:0,
+    credits:100,
 
     weapons:{
-        laser:false
+
+        cannon:1,
+
+        laser:0,
+        plasma:0
+
     },
+
+    weaponSlots:[
+
+        "cannon",
+        null
+
+    ],
     
     ships:{
 

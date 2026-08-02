@@ -213,3 +213,105 @@ function drawLaser(){
 
     
 }
+
+let plasmaTick = 0;
+let plasmaPulse = 0;
+
+function updatePlasma(){
+
+    if(!player.weapons.plasma)
+        return;
+
+    plasmaPulse += 0.05;
+    plasmaTick++;
+
+    if(plasmaTick < 10)
+        return;
+
+    plasmaTick = 0;
+
+    pirates.forEach(p=>{
+
+        const d = Math.hypot(
+
+            player.x-p.x,
+            player.y-p.y
+
+        );
+
+        if(d < 160){
+
+            p.hp -= 4;
+
+        }
+
+    });
+
+    for(let i = pirateMissiles.length - 1; i >= 0; i--){
+
+        const m = pirateMissiles[i];
+
+        const d = Math.hypot(
+            player.x - m.x,
+            player.y - m.y
+        );
+
+        if(d < 180){
+
+            pirateMissiles.splice(i,1);
+
+        }
+
+    }
+
+}
+
+function drawPlasma(){
+
+    if(!player.weapons.plasma)
+        return;
+
+    const sx = player.x-camera.x;
+    const sy = player.y-camera.y;
+
+    const pulse = Math.sin(plasmaPulse);
+
+    const outerRadius = 160 + pulse*3;
+    const innerRadius = 95 + pulse*2;
+
+    //--------------------------------
+    // Filled field
+    //--------------------------------
+
+    ctx.fillStyle="rgba(60,255,255,.08)";
+
+    ctx.beginPath();
+    ctx.arc(sx,sy,outerRadius,0,Math.PI*2);
+    ctx.fill();
+
+    //--------------------------------
+    // Outer Ring
+    //--------------------------------
+
+    ctx.strokeStyle="#55ffff";
+    ctx.lineWidth=4;
+
+    ctx.beginPath();
+    ctx.arc(sx,sy,outerRadius,0,Math.PI*2);
+    ctx.stroke();
+
+    //--------------------------------
+    // Inner Ring
+    //--------------------------------
+
+    ctx.strokeStyle="rgba(120,255,255,.30)";
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+    ctx.arc(sx,sy,innerRadius,0,Math.PI*2);
+    ctx.stroke();
+
+   
+
+}
+

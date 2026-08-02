@@ -122,8 +122,9 @@ function draw(){
     drawPlayerBullets();
     drawLaser();
     drawEngineParticles();
+    drawPlasma();
 
-    drawShip();
+    drawCurrentShip();
     drawHUD();
     drawRadar();
 

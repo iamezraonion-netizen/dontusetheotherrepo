@@ -198,6 +198,30 @@ canvas.addEventListener("click", e => {
                 player.weapons.laser=true;
                 break;
 
+            case "buyPlasma":
+
+                if(
+                    !player.weapons.plasma &&
+                    player.credits >= 100
+                ){
+
+                    player.credits -= 100;
+                    player.weapons.plasma = true;
+
+                }
+
+                break;  
+                
+            case "slot_0":
+
+                openWeaponDropdown(0, button.x, button.y + button.h);
+                break;
+
+            case "slot_1":
+
+                openWeaponDropdown(1, button.x, button.y + button.h);
+                break;    
+
             case "buy_fighter":
                 player.ships.fighter=true;
                 break;
@@ -216,6 +240,30 @@ canvas.addEventListener("click", e => {
 
             case "buy_flagship":
                 player.ships.flagship=true;
+                break;
+
+            case "use_scout":
+                player.currentShip="scout";
+                break;
+
+            case "use_fighter":
+                player.currentShip="fighter";
+                break;
+
+            case "use_frigate":
+                player.currentShip="frigate";
+                break;
+
+            case "use_destroyer":
+                player.currentShip="destroyer";
+                break;
+
+            case "use_cruiser":
+                player.currentShip="cruiser";
+                break;
+
+            case "use_flagship":
+                player.currentShip="flagship";
                 break;
 
         }
